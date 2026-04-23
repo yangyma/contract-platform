@@ -7,9 +7,18 @@ const ContractList = ({ contracts, categories, user, onOpenImport, onOpenCreate,
   const [searchTerm, setSearchTerm] = useState('');
   const [activeTab, setActiveTab] = useState('All');
   const [categoryFilter, setCategoryFilter] = useState('');
+  const [yearFilter, setYearFilter] = useState('');
   const [showFilters, setShowFilters] = useState(false);
   const [partyAFilter, setPartyAFilter] = useState('');
   const [partyBFilter, setPartyBFilter] = useState('');
+
+  const availableYears = Array.from(new Set(
+    contracts.map(c => {
+      if (!c.date || c.date === '-') return null;
+      const match = c.date.match(/^(\d{4})/);
+      return match ? match[1] : null;
+    }).filter(Boolean)
+  )).sort((a, b) => b - a);
 
   const filteredContracts = contracts.filter(c => {
     const matchesSearch = c.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
@@ -21,8 +30,9 @@ const ContractList = ({ contracts, categories, user, onOpenImport, onOpenCreate,
     const matchesCategory = categoryFilter ? c.type === categoryFilter : true;
     const matchesPartyA = partyAFilter ? c.partyA?.toLowerCase().includes(partyAFilter.toLowerCase()) : true;
     const matchesPartyB = partyBFilter ? c.partyB?.toLowerCase().includes(partyBFilter.toLowerCase()) : true;
+    const matchesYear = yearFilter ? c.date?.startsWith(yearFilter) : true;
     
-    return matchesSearch && matchesTab && matchesCategory && matchesPartyA && matchesPartyB;
+    return matchesSearch && matchesTab && matchesCategory && matchesPartyA && matchesPartyB && matchesYear;
   });
 
   return (
@@ -62,23 +72,6 @@ const ContractList = ({ contracts, categories, user, onOpenImport, onOpenCreate,
           </div>
 
           <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-            <select 
-              value={categoryFilter}
-              onChange={(e) => setCategoryFilter(e.target.value)}
-              style={{ 
-                padding: '8px 12px', 
-                borderRadius: 'var(--radius-md)', 
-                border: '1px solid var(--apple-border)',
-                outline: 'none',
-                backgroundColor: 'transparent',
-                color: 'var(--apple-text-primary)'
-              }}
-            >
-              <option value="">All Categories</option>
-              {categories.map(cat => (
-                <option key={cat.id} value={cat.name}>{cat.name}</option>
-              ))}
-            </select>
 
             <div className="search-bar">
               <Search size={16} color="var(--apple-text-secondary)" />
@@ -98,6 +91,66 @@ const ContractList = ({ contracts, categories, user, onOpenImport, onOpenCreate,
             </button>
           </div>
         </div>
+
+        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '16px' }}>
+          <span style={{ fontSize: '13px', fontWeight: 500, color: 'var(--apple-text-secondary)', alignSelf: 'center', marginRight: '8px', minWidth: '40px' }}>分类:</span>
+          <div 
+            className="badge" 
+            style={{ 
+              cursor: 'pointer', padding: '6px 12px', fontSize: '13px',
+              backgroundColor: categoryFilter === '' ? 'var(--apple-blue)' : 'var(--apple-bg-secondary)', 
+              color: categoryFilter === '' ? '#fff' : 'var(--apple-text-primary)' 
+            }}
+            onClick={() => setCategoryFilter('')}
+          >
+            全部
+          </div>
+          {categories.map(cat => (
+            <div 
+              key={cat.id}
+              className="badge" 
+              style={{ 
+                cursor: 'pointer', padding: '6px 12px', fontSize: '13px',
+                backgroundColor: categoryFilter === cat.name ? 'var(--apple-blue)' : 'var(--apple-bg-secondary)', 
+                color: categoryFilter === cat.name ? '#fff' : 'var(--apple-text-primary)' 
+              }}
+              onClick={() => setCategoryFilter(cat.name)}
+            >
+              {cat.name}
+            </div>
+          ))}
+        </div>
+
+        {availableYears.length > 0 && (
+          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '24px' }}>
+            <span style={{ fontSize: '13px', fontWeight: 500, color: 'var(--apple-text-secondary)', alignSelf: 'center', marginRight: '8px', minWidth: '40px' }}>年份:</span>
+            <div 
+              className="badge" 
+              style={{ 
+                cursor: 'pointer', padding: '6px 12px', fontSize: '13px',
+                backgroundColor: yearFilter === '' ? 'var(--apple-blue)' : 'var(--apple-bg-secondary)', 
+                color: yearFilter === '' ? '#fff' : 'var(--apple-text-primary)' 
+              }}
+              onClick={() => setYearFilter('')}
+            >
+              全部
+            </div>
+            {availableYears.map(year => (
+              <div 
+                key={year}
+                className="badge" 
+                style={{ 
+                  cursor: 'pointer', padding: '6px 12px', fontSize: '13px',
+                  backgroundColor: yearFilter === year ? 'var(--apple-blue)' : 'var(--apple-bg-secondary)', 
+                  color: yearFilter === year ? '#fff' : 'var(--apple-text-primary)' 
+                }}
+                onClick={() => setYearFilter(year)}
+              >
+                {year}
+              </div>
+            ))}
+          </div>
+        )}
 
         {showFilters && (
           <div style={{ 
