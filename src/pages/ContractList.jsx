@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, Plus, Filter, Upload, Download } from 'lucide-react';
+import { Search, Plus, Filter, Upload, Download, Trash2 } from 'lucide-react';
 
-const ContractList = ({ contracts, categories, user, onOpenImport, onOpenCreate, onOpenExport }) => {
+const ContractList = ({ contracts, categories, user, onOpenImport, onOpenCreate, onOpenExport, onDelete }) => {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
   const [activeTab, setActiveTab] = useState('All');
@@ -104,6 +104,7 @@ const ContractList = ({ contracts, categories, user, onOpenImport, onOpenCreate,
                 <th>签订时间 (Date)</th>
                 <th>纸质版归档</th>
                 <th>状态 (Status)</th>
+                <th>操作 (Actions)</th>
               </tr>
             </thead>
             <tbody>
@@ -121,6 +122,27 @@ const ContractList = ({ contracts, categories, user, onOpenImport, onOpenCreate,
                     <span className={`badge badge-${c.status}`}>
                       {c.status.charAt(0).toUpperCase() + c.status.slice(1)}
                     </span>
+                  </td>
+                  <td onClick={(e) => e.stopPropagation()}>
+                    <button 
+                      onClick={() => onDelete(c.id)} 
+                      style={{ 
+                        background: 'none', 
+                        border: 'none', 
+                        cursor: 'pointer', 
+                        color: '#ff3b30',
+                        padding: '4px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        borderRadius: '4px'
+                      }}
+                      onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(255,59,48,0.1)'}
+                      onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                      title="Delete Contract"
+                    >
+                      <Trash2 size={16} />
+                    </button>
                   </td>
                 </tr>
               ))}
