@@ -6,6 +6,7 @@ import ContractList from './pages/ContractList';
 import ContractDetail from './pages/ContractDetail';
 import Settings from './pages/Settings';
 import Login from './pages/Login';
+import Logs from './pages/Logs';
 import ImportModal from './components/ImportModal';
 import CreateContractModal from './components/CreateContractModal';
 import ExportModal from './components/ExportModal';
@@ -86,6 +87,14 @@ function App() {
     setLoadingContracts(false);
   };
 
+  const logAction = async (contractNumber, action) => {
+    await supabase.from('audit_logs').insert([{
+      contract_number: contractNumber,
+      action: action,
+      user_email: currentUser.email
+    }]);
+  };
+
   const handleArchiveContract = async (id) => {
     const { error } = await supabase
       .from('contracts')
@@ -95,6 +104,10 @@ function App() {
       setContracts(prev => prev.map(c => 
         c.id === id ? { ...c, status: 'archived' } : c
       ));
+      const archivedContract = contracts.find(c => c.id === id);
+      if (archivedContract) {
+        logAction(archivedContract.number, 'Archived Contract');
+      }
     } else {
       alert('Failed to archive contract in database.');
     }
@@ -108,6 +121,7 @@ function App() {
     const { data, error } = await supabase.from('contracts').insert(dataWithOwner).select();
     if (!error && data) {
       setContracts(prev => [...data, ...prev]);
+      logAction(`Batch Import (${data.length})`, 'Imported Contracts');
     } else {
       console.error(error);
       alert('Failed to import contracts to database.');
@@ -120,6 +134,7 @@ function App() {
     const { data, error } = await supabase.from('contracts').insert([contractWithOwner]).select();
     if (!error && data && data.length > 0) {
       setContracts(prev => [data[0], ...prev]);
+      logAction(data[0].number, 'Created Contract');
     } else {
       console.error(error);
       alert('Failed to save contract to database.');
@@ -136,6 +151,7 @@ function App() {
       setContracts(prev => prev.map(c => 
         c.id === id ? updatedContract : c
       ));
+      logAction(updatedContract.number, 'Updated Contract');
     } else {
       console.error(error);
       alert('Failed to update contract in database.');
@@ -200,6 +216,16 @@ function App() {
               element={
                 currentUser.role === 'admin' ? (
                   <Settings categories={categories} setCategories={setCategories} />
+                ) : (
+                  <Navigate to="/" replace />
+                )
+              } 
+            />
+            <Route 
+              path="/logs" 
+              element={
+                currentUser.role === 'admin' ? (
+                  <Logs />
                 ) : (
                   <Navigate to="/" replace />
                 )

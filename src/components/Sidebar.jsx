@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, FileText, Settings, Shield, LogOut } from 'lucide-react';
+import { LayoutDashboard, FileText, Settings, Shield, LogOut, Clock } from 'lucide-react';
 
 const Sidebar = ({ user, onChangeRole, onLogout }) => {
   return (
@@ -29,13 +29,22 @@ const Sidebar = ({ user, onChangeRole, onLogout }) => {
           Contracts
         </NavLink>
         {user.role === 'admin' && (
-          <NavLink 
-            to="/settings" 
-            className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}
-          >
-            <Settings size={20} />
-            Settings
-          </NavLink>
+          <>
+            <NavLink 
+              to="/settings" 
+              className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}
+            >
+              <Settings size={20} />
+              Settings
+            </NavLink>
+            <NavLink 
+              to="/logs" 
+              className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}
+            >
+              <Clock size={20} />
+              Operation Logs
+            </NavLink>
+          </>
         )}
       </div>
 
