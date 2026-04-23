@@ -12,12 +12,22 @@ const ContractList = ({ contracts, categories, user, onOpenImport, onOpenCreate,
   const [partyAFilter, setPartyAFilter] = useState('');
   const [partyBFilter, setPartyBFilter] = useState('');
 
+  const extractYear = (number) => {
+    if (!number) return null;
+    // Format: 2026GA001 (starts with 4 digits)
+    if (/^20\d{2}/.test(number)) {
+      return number.substring(0, 4);
+    }
+    // Format: GJSCKJ-26011 (dash followed by YY)
+    const match = number.match(/-(\d{2})/);
+    if (match) {
+      return '20' + match[1];
+    }
+    return null;
+  };
+
   const availableYears = Array.from(new Set(
-    contracts.map(c => {
-      if (!c.date || c.date === '-') return null;
-      const match = c.date.match(/^(\d{4})/);
-      return match ? match[1] : null;
-    }).filter(Boolean)
+    contracts.map(c => extractYear(c.number)).filter(Boolean)
   )).sort((a, b) => b - a);
 
   const filteredContracts = contracts.filter(c => {
@@ -30,7 +40,7 @@ const ContractList = ({ contracts, categories, user, onOpenImport, onOpenCreate,
     const matchesCategory = categoryFilters.length === 0 ? true : categoryFilters.includes(c.type);
     const matchesPartyA = partyAFilter ? c.partyA?.toLowerCase().includes(partyAFilter.toLowerCase()) : true;
     const matchesPartyB = partyBFilter ? c.partyB?.toLowerCase().includes(partyBFilter.toLowerCase()) : true;
-    const matchesYear = yearFilters.length === 0 ? true : yearFilters.some(y => c.date?.startsWith(y));
+    const matchesYear = yearFilters.length === 0 ? true : yearFilters.some(y => extractYear(c.number) === y);
     
     return matchesSearch && matchesTab && matchesCategory && matchesPartyA && matchesPartyB && matchesYear;
   });
