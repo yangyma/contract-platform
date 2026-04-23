@@ -62,7 +62,8 @@ const Settings = ({ categories, setCategories }) => {
 
         <p style={{ color: 'var(--apple-text-secondary)', marginBottom: '24px', fontSize: '14px' }}>
           Define the contract categories and their corresponding prefixes. 
-          When an employee creates a new contract, the system will automatically generate a contract number formatted as <strong>PREFIX-YY***</strong> (e.g., GJSCKJ-26001).
+          The default numbering format is <strong>PREFIX-YY***</strong> (e.g., GJSCKJ-26001). 
+          However, for "立项编号", a special format <strong>YYYY[PREFIX]***</strong> is applied (e.g., 2026GA001).
         </p>
 
         <div className="table-container">

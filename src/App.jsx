@@ -26,23 +26,41 @@ function App() {
 
   const generateContractNumber = (categoryName) => {
     const category = categories.find(c => c.name === categoryName) || categories[0];
-    const year = new Date().getFullYear().toString().slice(-2); // e.g. "26"
-    
-    // Find highest sequence for this prefix and year
     const prefix = category.prefix;
-    const regex = new RegExp(`^${prefix}-${year}(\\d{3})$`);
     
-    let maxSeq = 0;
-    contracts.forEach(c => {
-      const match = c.number.match(regex);
-      if (match) {
-        const seq = parseInt(match[1], 10);
-        if (seq > maxSeq) maxSeq = seq;
-      }
-    });
-
-    const nextSeq = (maxSeq + 1).toString().padStart(3, '0');
-    return `${prefix}-${year}${nextSeq}`;
+    // 特殊规则：如果是“立项编号”，采用 YYYY+PREFIX+NNN (例如 2026GA001)
+    if (categoryName.includes('立项编号')) {
+      const year = new Date().getFullYear().toString(); // "2026"
+      const regex = new RegExp(`^${year}${prefix}(\\d{3})$`);
+      
+      let maxSeq = 0;
+      contracts.forEach(c => {
+        const match = c.number.match(regex);
+        if (match) {
+          const seq = parseInt(match[1], 10);
+          if (seq > maxSeq) maxSeq = seq;
+        }
+      });
+      const nextSeq = (maxSeq + 1).toString().padStart(3, '0');
+      return `${year}${prefix}${nextSeq}`;
+    } 
+    
+    // 默认规则：PREFIX-YYNNN (例如 GJSCKJ-26001)
+    else {
+      const year = new Date().getFullYear().toString().slice(-2); // "26"
+      const regex = new RegExp(`^${prefix}-${year}(\\d{3})$`);
+      
+      let maxSeq = 0;
+      contracts.forEach(c => {
+        const match = c.number.match(regex);
+        if (match) {
+          const seq = parseInt(match[1], 10);
+          if (seq > maxSeq) maxSeq = seq;
+        }
+      });
+      const nextSeq = (maxSeq + 1).toString().padStart(3, '0');
+      return `${prefix}-${year}${nextSeq}`;
+    }
   };
 
   useEffect(() => {
