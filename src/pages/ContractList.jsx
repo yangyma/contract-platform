@@ -6,8 +6,8 @@ const ContractList = ({ contracts, categories, user, onOpenImport, onOpenCreate,
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
   const [activeTab, setActiveTab] = useState('All');
-  const [categoryFilter, setCategoryFilter] = useState('');
-  const [yearFilter, setYearFilter] = useState('');
+  const [categoryFilters, setCategoryFilters] = useState([]);
+  const [yearFilters, setYearFilters] = useState([]);
   const [showFilters, setShowFilters] = useState(false);
   const [partyAFilter, setPartyAFilter] = useState('');
   const [partyBFilter, setPartyBFilter] = useState('');
@@ -27,10 +27,10 @@ const ContractList = ({ contracts, categories, user, onOpenImport, onOpenCreate,
                        activeTab === 'Active' ? c.status === 'active' : 
                        activeTab === 'Drafts' ? c.status === 'draft' : 
                        c.status === 'archived';
-    const matchesCategory = categoryFilter ? c.type === categoryFilter : true;
+    const matchesCategory = categoryFilters.length === 0 ? true : categoryFilters.includes(c.type);
     const matchesPartyA = partyAFilter ? c.partyA?.toLowerCase().includes(partyAFilter.toLowerCase()) : true;
     const matchesPartyB = partyBFilter ? c.partyB?.toLowerCase().includes(partyBFilter.toLowerCase()) : true;
-    const matchesYear = yearFilter ? c.date?.startsWith(yearFilter) : true;
+    const matchesYear = yearFilters.length === 0 ? true : yearFilters.some(y => c.date?.startsWith(y));
     
     return matchesSearch && matchesTab && matchesCategory && matchesPartyA && matchesPartyB && matchesYear;
   });
@@ -98,10 +98,10 @@ const ContractList = ({ contracts, categories, user, onOpenImport, onOpenCreate,
             className="badge" 
             style={{ 
               cursor: 'pointer', padding: '6px 12px', fontSize: '13px',
-              backgroundColor: categoryFilter === '' ? 'var(--apple-blue)' : 'var(--apple-bg-secondary)', 
-              color: categoryFilter === '' ? '#fff' : 'var(--apple-text-primary)' 
+              backgroundColor: categoryFilters.length === 0 ? 'var(--apple-accent)' : 'var(--apple-bg-secondary)', 
+              color: categoryFilters.length === 0 ? '#fff' : 'var(--apple-text-primary)' 
             }}
-            onClick={() => setCategoryFilter('')}
+            onClick={() => setCategoryFilters([])}
           >
             全部
           </div>
@@ -111,10 +111,14 @@ const ContractList = ({ contracts, categories, user, onOpenImport, onOpenCreate,
               className="badge" 
               style={{ 
                 cursor: 'pointer', padding: '6px 12px', fontSize: '13px',
-                backgroundColor: categoryFilter === cat.name ? 'var(--apple-blue)' : 'var(--apple-bg-secondary)', 
-                color: categoryFilter === cat.name ? '#fff' : 'var(--apple-text-primary)' 
+                backgroundColor: categoryFilters.includes(cat.name) ? 'var(--apple-accent)' : 'var(--apple-bg-secondary)', 
+                color: categoryFilters.includes(cat.name) ? '#fff' : 'var(--apple-text-primary)' 
               }}
-              onClick={() => setCategoryFilter(cat.name)}
+              onClick={() => {
+                setCategoryFilters(prev => 
+                  prev.includes(cat.name) ? prev.filter(c => c !== cat.name) : [...prev, cat.name]
+                );
+              }}
             >
               {cat.name}
             </div>
@@ -128,10 +132,10 @@ const ContractList = ({ contracts, categories, user, onOpenImport, onOpenCreate,
               className="badge" 
               style={{ 
                 cursor: 'pointer', padding: '6px 12px', fontSize: '13px',
-                backgroundColor: yearFilter === '' ? 'var(--apple-blue)' : 'var(--apple-bg-secondary)', 
-                color: yearFilter === '' ? '#fff' : 'var(--apple-text-primary)' 
+                backgroundColor: yearFilters.length === 0 ? 'var(--apple-accent)' : 'var(--apple-bg-secondary)', 
+                color: yearFilters.length === 0 ? '#fff' : 'var(--apple-text-primary)' 
               }}
-              onClick={() => setYearFilter('')}
+              onClick={() => setYearFilters([])}
             >
               全部
             </div>
@@ -141,10 +145,14 @@ const ContractList = ({ contracts, categories, user, onOpenImport, onOpenCreate,
                 className="badge" 
                 style={{ 
                   cursor: 'pointer', padding: '6px 12px', fontSize: '13px',
-                  backgroundColor: yearFilter === year ? 'var(--apple-blue)' : 'var(--apple-bg-secondary)', 
-                  color: yearFilter === year ? '#fff' : 'var(--apple-text-primary)' 
+                  backgroundColor: yearFilters.includes(year) ? 'var(--apple-accent)' : 'var(--apple-bg-secondary)', 
+                  color: yearFilters.includes(year) ? '#fff' : 'var(--apple-text-primary)' 
                 }}
-                onClick={() => setYearFilter(year)}
+                onClick={() => {
+                  setYearFilters(prev => 
+                    prev.includes(year) ? prev.filter(y => y !== year) : [...prev, year]
+                  );
+                }}
               >
                 {year}
               </div>

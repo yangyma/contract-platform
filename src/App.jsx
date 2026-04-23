@@ -259,6 +259,26 @@ function App() {
     }
   };
 
+  const handleDeleteContract = async (id) => {
+    const contractToDelete = contracts.find(c => c.id === id);
+    if (!contractToDelete) return;
+    
+    if (window.confirm(`Are you sure you want to delete contract ${contractToDelete.number}? This cannot be undone.`)) {
+      const { error } = await supabase
+        .from('contracts')
+        .delete()
+        .eq('id', id);
+        
+      if (!error) {
+        setContracts(prev => prev.filter(c => c.id !== id));
+        logAction(contractToDelete.number, 'Deleted Contract');
+      } else {
+        console.error(error);
+        alert('Failed to delete contract.');
+      }
+    }
+  };
+
   const toggleUser = () => {
     setCurrentUser(prev => prev.role === 'admin' ? MOCK_USER_EMPLOYEE : MOCK_USER_ADMIN);
   };
@@ -299,6 +319,7 @@ function App() {
                 onOpenImport={() => setIsImportModalOpen(true)} 
                 onOpenCreate={() => setIsCreateModalOpen(true)} 
                 onOpenExport={() => setIsExportModalOpen(true)}
+                onDelete={handleDeleteContract}
               />} 
             />
             <Route 
