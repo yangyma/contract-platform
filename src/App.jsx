@@ -175,10 +175,24 @@ function App() {
       const { id, ...rest } = c; // remove client-side generated ID
       return { ...rest, ownerId: currentUser.id };
     });
+
+    // Find and delete any existing contracts with the same numbers to ensure uniqueness
+    const importedNumbers = dataWithOwner.map(c => c.number);
+    const { error: deleteError } = await supabase
+      .from('contracts')
+      .delete()
+      .in('number', importedNumbers);
+
+    if (deleteError) {
+      console.error('Failed to clear duplicate contracts:', deleteError);
+      alert('Failed to process duplicates during import.');
+      return;
+    }
+
     const { data, error } = await supabase.from('contracts').insert(dataWithOwner).select();
     if (!error && data) {
-      setContracts(prev => [...data, ...prev]);
-      logAction(`Batch Import (${data.length})`, 'Imported Contracts');
+      fetchContracts(); // Refresh to accurately reflect state (both deletions and insertions)
+      logAction(`Batch Import (${data.length})`, 'Imported Contracts (Resolved Duplicates)');
     } else {
       console.error(error);
       alert('Failed to import contracts to database.');

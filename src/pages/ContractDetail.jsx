@@ -99,10 +99,6 @@ const ContractDetail = ({ contracts, categories, user, onArchive, onUpdate }) =>
           </div>
           
           <div style={{ display: 'flex', gap: '12px' }}>
-            <button className="btn btn-secondary">
-              <Printer size={16} />
-              Print
-            </button>
             {contract.status !== 'archived' && (
               <>
                 <button className="btn btn-secondary" onClick={() => setIsEditOpen(true)}>
