@@ -1,20 +1,39 @@
 import React, { useState } from 'react';
-import { MOCK_USER_ADMIN, MOCK_USER_EMPLOYEE } from '../data';
+import { supabase } from '../supabaseClient';
 
 const Login = ({ onLogin }) => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
 
-  const handleSubmit = (e) => {
+  const [loading, setLoading] = useState(false);
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (username === 'admin' && password === 'admin') {
-      onLogin(MOCK_USER_ADMIN);
-    } else if (username === 'employee' && password === 'employee') {
-      onLogin(MOCK_USER_EMPLOYEE);
+    setLoading(true);
+    setError('');
+
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email: username,
+      password: password,
+    });
+
+    if (error) {
+      setError('登录失败: ' + error.message);
     } else {
-      setError('Invalid username or password. Try admin/admin or employee/employee.');
+      const user = data.user;
+      // 设定您自己的邮箱为超级管理员，其他人全是普通员工
+      const isAdmin = user.email === 'ma.yangyue@star.vision';
+      
+      onLogin({
+        id: user.id,
+        email: user.email,
+        name: user.email.split('@')[0],
+        role: isAdmin ? 'admin' : 'employee',
+        avatar: user.email.charAt(0).toUpperCase()
+      });
     }
+    setLoading(false);
   };
 
   return (
@@ -110,38 +129,31 @@ const Login = ({ onLogin }) => {
           {error && <div style={{ color: '#ff3b30', fontSize: '14px', marginBottom: '16px', textAlign: 'center' }}>{error}</div>}
 
           <button 
-            type="submit" 
+            type="submit"
+            disabled={loading}
             style={{
               width: '100%',
               padding: '14px',
-              backgroundColor: '#0071e3',
+              backgroundColor: loading ? '#005bb5' : '#0071e3',
               color: 'white',
               border: 'none',
               borderRadius: '12px',
               fontSize: '16px',
               fontWeight: 500,
-              cursor: 'pointer',
+              cursor: loading ? 'not-allowed' : 'pointer',
               transition: 'all 0.2s ease'
             }}
-            onMouseEnter={(e) => {
-              e.target.style.backgroundColor = '#0077ED';
-              e.target.style.transform = 'scale(1.02)';
-            }}
-            onMouseLeave={(e) => {
-              e.target.style.backgroundColor = '#0071e3';
-              e.target.style.transform = 'scale(1)';
-            }}
-            onMouseDown={(e) => e.target.style.transform = 'scale(0.98)'}
-            onMouseUp={(e) => e.target.style.transform = 'scale(1.02)'}
+            onMouseEnter={(e) => { if(!loading) e.target.style.backgroundColor = '#0077ED'; }}
+            onMouseLeave={(e) => { if(!loading) e.target.style.backgroundColor = '#0071e3'; }}
+            onMouseDown={(e) => { if(!loading) e.target.style.transform = 'scale(0.98)'; }}
+            onMouseUp={(e) => { if(!loading) e.target.style.transform = 'scale(1.02)'; }}
           >
-            Sign In
+            {loading ? 'Signing in...' : 'Sign In'}
           </button>
         </form>
 
         <div style={{ marginTop: '32px', fontSize: '12px', color: '#86868b', textAlign: 'center', lineHeight: '1.5' }}>
-          Demo Credentials:<br/>
-          <strong>admin</strong> / <strong>admin</strong><br/>
-          <strong>employee</strong> / <strong>employee</strong>
+          Contact your administrator to get an account.
         </div>
       </div>
     </div>

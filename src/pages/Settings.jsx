@@ -83,6 +83,7 @@ const Settings = ({ categories, setCategories }) => {
                         <input 
                           value={editForm.name} 
                           onChange={e => setEditForm({ ...editForm, name: e.target.value })}
+                          onKeyDown={e => e.key === 'Enter' && handleSaveEdit(cat.id)}
                           style={{ padding: '6px', borderRadius: '4px', border: '1px solid var(--apple-border)', width: '100%' }}
                         />
                       </td>
@@ -90,6 +91,7 @@ const Settings = ({ categories, setCategories }) => {
                         <input 
                           value={editForm.prefix} 
                           onChange={e => setEditForm({ ...editForm, prefix: e.target.value.toUpperCase() })}
+                          onKeyDown={e => e.key === 'Enter' && handleSaveEdit(cat.id)}
                           style={{ padding: '6px', borderRadius: '4px', border: '1px solid var(--apple-border)', width: '100%' }}
                         />
                       </td>
@@ -130,6 +132,7 @@ const Settings = ({ categories, setCategories }) => {
                       placeholder="e.g. 软件授权合同"
                       value={newForm.name} 
                       onChange={e => setNewForm({ ...newForm, name: e.target.value })}
+                      onKeyDown={e => e.key === 'Enter' && handleAdd()}
                       style={{ padding: '6px', borderRadius: '4px', border: '1px solid var(--apple-border)', width: '100%' }}
                     />
                   </td>
@@ -138,6 +141,7 @@ const Settings = ({ categories, setCategories }) => {
                       placeholder="e.g. RJSQ"
                       value={newForm.prefix} 
                       onChange={e => setNewForm({ ...newForm, prefix: e.target.value.toUpperCase() })}
+                      onKeyDown={e => e.key === 'Enter' && handleAdd()}
                       style={{ padding: '6px', borderRadius: '4px', border: '1px solid var(--apple-border)', width: '100%' }}
                     />
                   </td>
