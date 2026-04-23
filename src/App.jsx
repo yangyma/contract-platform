@@ -171,31 +171,61 @@ function App() {
   };
 
   const handleImportContracts = async (importedData) => {
-    const dataWithOwner = importedData.map(c => {
-      const { id, ...rest } = c; // remove client-side generated ID
-      return { ...rest, ownerId: currentUser.id };
-    });
+    // Sanitize imported numbers (remove trailing spaces)
+    const sanitizedData = importedData.map(c => ({
+      ...c,
+      number: c.number ? String(c.number).trim() : c.number
+    }));
 
-    // Find and delete any existing contracts with the same numbers to ensure uniqueness
-    const importedNumbers = dataWithOwner.map(c => c.number);
-    const { error: deleteError } = await supabase
+    // Identify existing contracts to update vs insert
+    const importedNumbers = sanitizedData.map(c => c.number);
+    const { data: existingContracts } = await supabase
       .from('contracts')
-      .delete()
+      .select('id, number, ownerId')
       .in('number', importedNumbers);
 
-    if (deleteError) {
-      console.error('Failed to clear duplicate contracts:', deleteError);
-      alert('Failed to process duplicates during import.');
-      return;
+    const existingMap = new Map((existingContracts || []).map(c => [c.number, c]));
+
+    const toUpdate = [];
+    const toInsert = [];
+
+    sanitizedData.forEach(c => {
+      const { id, ...rest } = c; // remove client-side generated ID
+      const existing = existingMap.get(rest.number);
+      if (existing) {
+        // Update existing, PRESERVING the original ownerId so the original owner doesn't lose access
+        toUpdate.push({ ...rest, id: existing.id, ownerId: existing.ownerId });
+      } else {
+        // Insert new, assigning ownership to current user
+        toInsert.push({ ...rest, ownerId: currentUser.id });
+      }
+    });
+
+    let hasError = false;
+
+    // Perform updates
+    if (toUpdate.length > 0) {
+      const { error: updateError } = await supabase.from('contracts').upsert(toUpdate);
+      if (updateError) {
+        console.error('Failed to update existing contracts:', updateError);
+        hasError = true;
+      }
     }
 
-    const { data, error } = await supabase.from('contracts').insert(dataWithOwner).select();
-    if (!error && data) {
-      fetchContracts(); // Refresh to accurately reflect state (both deletions and insertions)
-      logAction(`Batch Import (${data.length})`, 'Imported Contracts (Resolved Duplicates)');
+    // Perform inserts
+    if (toInsert.length > 0) {
+      const { error: insertError } = await supabase.from('contracts').insert(toInsert);
+      if (insertError) {
+        console.error('Failed to insert new contracts:', insertError);
+        hasError = true;
+      }
+    }
+
+    if (hasError) {
+      alert('Some contracts failed to import/update. Please check the console.');
     } else {
-      console.error(error);
-      alert('Failed to import contracts to database.');
+      fetchContracts(); // Refresh to accurately reflect state
+      logAction(`Batch Import (${sanitizedData.length})`, 'Imported/Updated Contracts');
     }
   };
 
