@@ -1,9 +1,9 @@
 import React, { useState, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Archive, Edit, Printer, FileCheck, Shield, Upload } from 'lucide-react';
+import { ArrowLeft, Archive, Edit, Printer, FileCheck, Shield, Upload, Trash2 } from 'lucide-react';
 import EditContractModal from '../components/EditContractModal';
 
-const ContractDetail = ({ contracts, categories, user, onArchive, onUpdate }) => {
+const ContractDetail = ({ contracts, categories, user, onArchive, onUpdate, onDelete }) => {
   const { id } = useParams();
   const navigate = useNavigate();
   const [isEditOpen, setIsEditOpen] = useState(false);
@@ -33,6 +33,13 @@ const ContractDetail = ({ contracts, categories, user, onArchive, onUpdate }) =>
   const handleArchive = () => {
     if (confirm('Are you sure you want to archive this contract? It will become read-only.')) {
       onArchive(contract.id);
+    }
+  };
+
+  const handleDelete = () => {
+    if (confirm('Are you sure you want to PERMANENTLY delete this contract? This action cannot be undone.')) {
+      onDelete(contract.id);
+      navigate('/contracts');
     }
   };
 
@@ -106,10 +113,16 @@ const ContractDetail = ({ contracts, categories, user, onArchive, onUpdate }) =>
                   Edit
                 </button>
                 {(user.role === 'admin' || contract.ownerId === user.id) && (
-                  <button className="btn btn-secondary" style={{ color: '#FF3B30' }} onClick={handleArchive}>
-                    <Archive size={16} />
-                    Archive
-                  </button>
+                  <>
+                    <button className="btn btn-secondary" style={{ color: '#FF3B30' }} onClick={handleArchive}>
+                      <Archive size={16} />
+                      Archive
+                    </button>
+                    <button className="btn btn-secondary" style={{ color: '#FF3B30' }} onClick={handleDelete}>
+                      <Trash2 size={16} />
+                      Delete
+                    </button>
+                  </>
                 )}
               </>
             )}

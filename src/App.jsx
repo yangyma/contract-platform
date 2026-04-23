@@ -333,6 +333,7 @@ function App() {
                   categories={categories}
                   onArchive={handleArchiveContract} 
                   onUpdate={handleUpdateContract}
+                  onDelete={handleDeleteContract}
                 />
               } 
             />
