@@ -7,6 +7,9 @@ const ContractList = ({ contracts, categories, user, onOpenImport, onOpenCreate,
   const [searchTerm, setSearchTerm] = useState('');
   const [activeTab, setActiveTab] = useState('All');
   const [categoryFilter, setCategoryFilter] = useState('');
+  const [showFilters, setShowFilters] = useState(false);
+  const [partyAFilter, setPartyAFilter] = useState('');
+  const [partyBFilter, setPartyBFilter] = useState('');
 
   const filteredContracts = contracts.filter(c => {
     const matchesSearch = c.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
@@ -16,8 +19,10 @@ const ContractList = ({ contracts, categories, user, onOpenImport, onOpenCreate,
                        activeTab === 'Drafts' ? c.status === 'draft' : 
                        c.status === 'archived';
     const matchesCategory = categoryFilter ? c.type === categoryFilter : true;
+    const matchesPartyA = partyAFilter ? c.partyA?.toLowerCase().includes(partyAFilter.toLowerCase()) : true;
+    const matchesPartyB = partyBFilter ? c.partyB?.toLowerCase().includes(partyBFilter.toLowerCase()) : true;
     
-    return matchesSearch && matchesTab && matchesCategory;
+    return matchesSearch && matchesTab && matchesCategory && matchesPartyA && matchesPartyB;
   });
 
   return (
@@ -84,12 +89,56 @@ const ContractList = ({ contracts, categories, user, onOpenImport, onOpenCreate,
                 onChange={e => setSearchTerm(e.target.value)}
               />
             </div>
-            <button className="btn btn-secondary">
+            <button 
+              className={`btn ${showFilters ? 'btn-primary' : 'btn-secondary'}`}
+              onClick={() => setShowFilters(!showFilters)}
+            >
               <Filter size={16} />
               Filter
             </button>
           </div>
         </div>
+
+        {showFilters && (
+          <div style={{ 
+            display: 'flex', gap: '16px', marginBottom: '24px', 
+            padding: '16px', backgroundColor: 'var(--apple-bg-secondary)', 
+            borderRadius: 'var(--radius-md)' 
+          }}>
+            <div style={{ flex: 1 }}>
+              <label style={{ display: 'block', fontSize: '12px', color: 'var(--apple-text-secondary)', marginBottom: '4px' }}>
+                我方签约主体 (Party A)
+              </label>
+              <input 
+                type="text" 
+                placeholder="Filter by Party A..." 
+                value={partyAFilter}
+                onChange={e => setPartyAFilter(e.target.value)}
+                style={{ width: '100%', padding: '8px 12px', borderRadius: 'var(--radius-md)', border: '1px solid var(--apple-border)', outline: 'none' }}
+              />
+            </div>
+            <div style={{ flex: 1 }}>
+              <label style={{ display: 'block', fontSize: '12px', color: 'var(--apple-text-secondary)', marginBottom: '4px' }}>
+                合同相对方 (Party B)
+              </label>
+              <input 
+                type="text" 
+                placeholder="Filter by Party B..." 
+                value={partyBFilter}
+                onChange={e => setPartyBFilter(e.target.value)}
+                style={{ width: '100%', padding: '8px 12px', borderRadius: 'var(--radius-md)', border: '1px solid var(--apple-border)', outline: 'none' }}
+              />
+            </div>
+            <div style={{ display: 'flex', alignItems: 'flex-end' }}>
+              <button 
+                className="btn btn-secondary" 
+                onClick={() => { setPartyAFilter(''); setPartyBFilter(''); }}
+              >
+                Clear
+              </button>
+            </div>
+          </div>
+        )}
 
         <div className="table-container" style={{ overflowX: 'auto' }}>
           <table style={{ minWidth: '1000px' }}>
