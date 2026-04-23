@@ -10,7 +10,7 @@ export const INITIAL_CATEGORIES = [
 
 export const OUR_PARTIES = [
   '地卫二空间技术（杭州）有限公司',
-  '星见空间技术有限公司',
+  '星見空間技術有限公司',
   '东方星链时空智能（山东）技术发展有限公司'
 ];
 

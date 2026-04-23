@@ -17,9 +17,27 @@ const EditContractModal = ({ isOpen, onClose, onUpdate, initialData, categories 
     remarks: ''
   });
 
+  const formatDateForInput = (dateStr) => {
+    if (!dateStr || dateStr === '-' || dateStr === 'N/A') return '';
+    // Replace dots or slashes with dashes
+    let formatted = dateStr.replace(/[\.\/]/g, '-');
+    // Ensure YYYY-MM-DD
+    const match = formatted.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
+    if (match) {
+      const yyyy = match[1];
+      const mm = match[2].padStart(2, '0');
+      const dd = match[3].padStart(2, '0');
+      return `${yyyy}-${mm}-${dd}`;
+    }
+    return '';
+  };
+
   useEffect(() => {
     if (initialData) {
-      setFormData(initialData);
+      setFormData({
+        ...initialData,
+        date: formatDateForInput(initialData.date)
+      });
     }
   }, [initialData]);
 
