@@ -52,9 +52,9 @@ const ImportModal = ({ isOpen, onClose, onImport, categories = [] }) => {
         
         // Map the Chinese headers to our data structure
         const mappedData = json.map((row, index) => {
-          let partyA = row['我方签约主体'];
-          if (!partyA || typeof partyA !== 'string' || partyA.trim() === '') {
-            partyA = OUR_PARTIES[0];
+          let partyA = row['我方签约主体'] || '';
+          if (typeof partyA === 'string') {
+            partyA = partyA.trim();
           }
 
           let parsedDate = row['签订时间'];
