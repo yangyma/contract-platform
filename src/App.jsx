@@ -47,8 +47,20 @@ function App() {
   useEffect(() => {
     if (isAuthenticated) {
       fetchContracts();
+      fetchCategories();
     }
   }, [isAuthenticated]);
+
+  const fetchCategories = async () => {
+    const { data, error } = await supabase
+      .from('categories')
+      .select('*')
+      .order('created_at', { ascending: true });
+    
+    if (!error && data && data.length > 0) {
+      setCategories(data);
+    }
+  };
 
   const fetchContracts = async () => {
     setLoadingContracts(true);

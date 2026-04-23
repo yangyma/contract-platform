@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Plus, Edit, Trash2, Settings as SettingsIcon, Check, X } from 'lucide-react';
+import { supabase } from '../supabaseClient';
 
 const Settings = ({ categories, setCategories }) => {
   const [editingId, setEditingId] = useState(null);
@@ -12,27 +13,37 @@ const Settings = ({ categories, setCategories }) => {
     setEditForm({ name: cat.name, prefix: cat.prefix });
   };
 
-  const handleSaveEdit = (id) => {
-    setCategories(prev => prev.map(cat => cat.id === id ? { ...cat, ...editForm } : cat));
-    setEditingId(null);
-  };
-
-  const handleDelete = (id) => {
-    if (confirm('Are you sure you want to delete this category?')) {
-      setCategories(prev => prev.filter(cat => cat.id !== id));
+  const handleSaveEdit = async (id) => {
+    const { error } = await supabase.from('categories').update(editForm).eq('id', id);
+    if (!error) {
+      setCategories(prev => prev.map(cat => cat.id === id ? { ...cat, ...editForm } : cat));
+      setEditingId(null);
+    } else {
+      alert('Failed to update category.');
     }
   };
 
-  const handleAdd = () => {
+  const handleDelete = async (id) => {
+    if (confirm('Are you sure you want to delete this category?')) {
+      const { error } = await supabase.from('categories').delete().eq('id', id);
+      if (!error) {
+        setCategories(prev => prev.filter(cat => cat.id !== id));
+      } else {
+        alert('Failed to delete category.');
+      }
+    }
+  };
+
+  const handleAdd = async () => {
     if (!newForm.name || !newForm.prefix) return alert('Name and Prefix are required.');
-    const newCategory = {
-      id: `cat_${Date.now()}`,
-      name: newForm.name,
-      prefix: newForm.prefix
-    };
-    setCategories(prev => [...prev, newCategory]);
-    setIsAdding(false);
-    setNewForm({ name: '', prefix: '' });
+    const { data, error } = await supabase.from('categories').insert([{ name: newForm.name, prefix: newForm.prefix }]).select();
+    if (!error && data && data.length > 0) {
+      setCategories(prev => [...prev, data[0]]);
+      setIsAdding(false);
+      setNewForm({ name: '', prefix: '' });
+    } else {
+      alert('Failed to add new category.');
+    }
   };
 
   return (
