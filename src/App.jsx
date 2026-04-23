@@ -57,8 +57,17 @@ function App() {
       .select('*')
       .order('created_at', { ascending: true });
     
-    if (!error && data && data.length > 0) {
-      setCategories(data);
+    if (!error && data) {
+      if (data.length === 0) {
+        // Auto-seed initial categories if table is empty
+        const defaultsToInsert = INITIAL_CATEGORIES.map(c => ({ name: c.name, prefix: c.prefix }));
+        const { data: insertedData, error: insertError } = await supabase.from('categories').insert(defaultsToInsert).select();
+        if (!insertError && insertedData) {
+          setCategories(insertedData);
+        }
+      } else {
+        setCategories(data);
+      }
     }
   };
 
