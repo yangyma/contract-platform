@@ -1,8 +1,8 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, FileText, Settings, Shield, LogOut, Clock } from 'lucide-react';
+import { LayoutDashboard, FileText, Settings, LogOut, Clock, Key } from 'lucide-react';
 
-const Sidebar = ({ user, onChangeRole, onLogout }) => {
+const Sidebar = ({ user, onChangePassword, onLogout }) => {
   return (
     <div className="sidebar">
       <div className="sidebar-header" style={{ padding: '24px 16px 12px', height: 'auto', display: 'flex', justifyContent: 'center' }}>
@@ -51,6 +51,14 @@ const Sidebar = ({ user, onChangeRole, onLogout }) => {
       <div style={{ padding: '0 16px', marginBottom: '16px' }}>
         <button 
           className="nav-item" 
+          onClick={onChangePassword} 
+          style={{ width: '100%', background: 'none', border: 'none', textAlign: 'left', cursor: 'pointer', color: 'var(--apple-text-secondary)', padding: '12px', display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}
+        >
+          <Key size={20} />
+          Change Password
+        </button>
+        <button 
+          className="nav-item" 
           onClick={onLogout} 
           style={{ width: '100%', background: 'none', border: 'none', textAlign: 'left', cursor: 'pointer', color: 'var(--apple-text-secondary)', padding: '12px', display: 'flex', alignItems: 'center', gap: '12px' }}
         >
@@ -59,7 +67,7 @@ const Sidebar = ({ user, onChangeRole, onLogout }) => {
         </button>
       </div>
 
-      <div className="user-profile" onClick={onChangeRole}>
+      <div className="user-profile">
         <div className="avatar">{user.avatar}</div>
         <div style={{ flex: 1 }}>
           <div style={{ fontSize: '14px', fontWeight: 500 }}>{user.name}</div>

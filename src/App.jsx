@@ -10,7 +10,8 @@ import Logs from './pages/Logs';
 import ImportModal from './components/ImportModal';
 import CreateContractModal from './components/CreateContractModal';
 import ExportModal from './components/ExportModal';
-import { MOCK_USER_ADMIN, MOCK_USER_EMPLOYEE, INITIAL_CATEGORIES } from './data';
+import ChangePasswordModal from './components/ChangePasswordModal';
+import { INITIAL_CATEGORIES } from './data';
 import { Shield } from 'lucide-react';
 import { supabase } from './supabaseClient';
 
@@ -23,6 +24,7 @@ function App() {
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
+  const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
 
   const generateContractNumber = (categoryName) => {
     const category = categories.find(c => c.name === categoryName) || categories[0];
@@ -279,10 +281,6 @@ function App() {
     }
   };
 
-  const toggleUser = () => {
-    setCurrentUser(prev => prev.role === 'admin' ? MOCK_USER_EMPLOYEE : MOCK_USER_ADMIN);
-  };
-
   const handleLogin = (user) => {
     setCurrentUser(user);
     setIsAuthenticated(true);
@@ -305,7 +303,11 @@ function App() {
   return (
     <Router>
       <div className="app-container fade-in">
-        <Sidebar user={currentUser} onChangeRole={toggleUser} onLogout={handleLogout} />
+        <Sidebar 
+          user={currentUser} 
+          onChangePassword={() => setIsPasswordModalOpen(true)} 
+          onLogout={handleLogout} 
+        />
         
         <main className="main-content">
           <Routes>
@@ -378,27 +380,10 @@ function App() {
           contracts={contracts}
         />
 
-        <div className="role-selector">
-          <div className="role-selector-title">Test Demo Panel</div>
-          <div style={{ fontSize: '12px', color: 'var(--apple-text-secondary)', marginBottom: '8px' }}>
-            Click the user profile in the sidebar to toggle roles.
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px' }}>
-            <span style={{ fontWeight: currentUser.role === 'admin' ? 600 : 400 }}>Admin</span>
-            <div style={{ width: '32px', height: '16px', background: 'var(--apple-accent)', borderRadius: '16px', position: 'relative' }}>
-              <div style={{ 
-                position: 'absolute', 
-                width: '12px', height: '12px', 
-                background: 'white', 
-                borderRadius: '50%', 
-                top: '2px', 
-                left: currentUser.role === 'employee' ? '18px' : '2px',
-                transition: 'all 0.3s ease'
-              }}></div>
-            </div>
-            <span style={{ fontWeight: currentUser.role === 'employee' ? 600 : 400 }}>Employee</span>
-          </div>
-        </div>
+        <ChangePasswordModal 
+          isOpen={isPasswordModalOpen} 
+          onClose={() => setIsPasswordModalOpen(false)} 
+        />
       </div>
     </Router>
   );
