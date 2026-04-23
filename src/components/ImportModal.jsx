@@ -43,7 +43,7 @@ const ImportModal = ({ isOpen, onClose, onImport, categories = [] }) => {
 
           let headerRowIndex = 0;
           for (let i = 0; i < Math.min(10, aoa.length); i++) {
-            if (aoa[i] && (aoa[i].includes('合同编号') || aoa[i].includes('序号'))) {
+            if (aoa[i] && (aoa[i].includes('合同编号') || aoa[i].includes('序号') || aoa[i].includes('编号'))) {
               headerRowIndex = i;
               break;
             }
@@ -62,16 +62,21 @@ const ImportModal = ({ isOpen, onClose, onImport, categories = [] }) => {
               parsedDate = '-';
             }
             
-            if (!row['合同编号']) return null;
+            // Flexible header mapping
+            const contractNumber = row['合同编号'] || row['编号'];
+            const contractTitle = row['合同主要内容'] || row['项目'];
+            const contractOwner = row['经办人'] || row['负责人'];
+
+            if (!contractNumber) return null;
 
             return {
               id: `imported_${Date.now()}_${sheetName}_${index}`,
-              number: row['合同编号'],
+              number: contractNumber,
               partyA: partyA,
               partyB: row['合同相对方'] || '-',
-              title: row['合同主要内容'] || '未命名合同',
+              title: contractTitle || '未命名合同',
               amount: row['金额'] || '-',
-              owner: row['经办人'] || '-',
+              owner: contractOwner || '-',
               date: parsedDate,
               paperArchived: row['纸质版归档状态'] || '未归档',
               electronicArchived: row['电子版归档状态'] || '未归档',

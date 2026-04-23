@@ -329,29 +329,6 @@ body {
   font-weight: 500;
 }
 
-/* Role Selector for Demo */
-.role-selector {
-  position: fixed;
-  bottom: 24px;
-  right: 24px;
-  background: white;
-  padding: 16px;
-  border-radius: var(--radius-md);
-  box-shadow: var(--shadow-lg);
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  z-index: 100;
-  border: 1px solid var(--apple-border);
-}
-
-.role-selector-title {
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--apple-text-secondary);
-  text-transform: uppercase;
-}
-
 .fade-in {
   animation: fadeIn 0.4s ease-out;
 }
