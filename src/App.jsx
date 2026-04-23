@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Sidebar from './components/Sidebar';
 import Dashboard from './pages/Dashboard';
@@ -9,13 +9,15 @@ import Login from './pages/Login';
 import ImportModal from './components/ImportModal';
 import CreateContractModal from './components/CreateContractModal';
 import ExportModal from './components/ExportModal';
-import { MOCK_USER_ADMIN, MOCK_USER_EMPLOYEE, MOCK_CONTRACTS, INITIAL_CATEGORIES } from './data';
+import { MOCK_USER_ADMIN, MOCK_USER_EMPLOYEE, INITIAL_CATEGORIES } from './data';
 import { Shield } from 'lucide-react';
+import { supabase } from './supabaseClient';
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
-  const [contracts, setContracts] = useState(MOCK_CONTRACTS);
+  const [contracts, setContracts] = useState([]);
+  const [loadingContracts, setLoadingContracts] = useState(false);
   const [categories, setCategories] = useState(INITIAL_CATEGORIES);
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -42,26 +44,81 @@ function App() {
     return `${prefix}-${year}${nextSeq}`;
   };
 
-  const handleArchiveContract = (id) => {
-    setContracts(prev => prev.map(c => 
-      c.id === id ? { ...c, status: 'archived' } : c
-    ));
+  useEffect(() => {
+    if (isAuthenticated) {
+      fetchContracts();
+    }
+  }, [isAuthenticated]);
+
+  const fetchContracts = async () => {
+    setLoadingContracts(true);
+    const { data, error } = await supabase
+      .from('contracts')
+      .select('*')
+      .order('created_at', { ascending: false });
+    
+    if (error) {
+      console.error('Error fetching contracts:', error);
+    } else {
+      setContracts(data || []);
+    }
+    setLoadingContracts(false);
   };
 
-  const handleImportContracts = (importedData) => {
-    const dataWithOwner = importedData.map(c => ({...c, ownerId: currentUser.id}));
-    setContracts(prev => [...dataWithOwner, ...prev]);
+  const handleArchiveContract = async (id) => {
+    const { error } = await supabase
+      .from('contracts')
+      .update({ status: 'archived' })
+      .eq('id', id);
+    if (!error) {
+      setContracts(prev => prev.map(c => 
+        c.id === id ? { ...c, status: 'archived' } : c
+      ));
+    } else {
+      alert('Failed to archive contract in database.');
+    }
   };
 
-  const handleAddContract = (newContract) => {
-    const contractWithOwner = { ...newContract, ownerId: currentUser.id };
-    setContracts(prev => [contractWithOwner, ...prev]);
+  const handleImportContracts = async (importedData) => {
+    const dataWithOwner = importedData.map(c => {
+      const { id, ...rest } = c; // remove client-side generated ID
+      return { ...rest, ownerId: currentUser.id };
+    });
+    const { data, error } = await supabase.from('contracts').insert(dataWithOwner).select();
+    if (!error && data) {
+      setContracts(prev => [...data, ...prev]);
+    } else {
+      console.error(error);
+      alert('Failed to import contracts to database.');
+    }
   };
 
-  const handleUpdateContract = (updatedContract) => {
-    setContracts(prev => prev.map(c => 
-      c.id === updatedContract.id ? updatedContract : c
-    ));
+  const handleAddContract = async (newContract) => {
+    const { id, ...rest } = newContract; // remove client-side generated ID
+    const contractWithOwner = { ...rest, ownerId: currentUser.id };
+    const { data, error } = await supabase.from('contracts').insert([contractWithOwner]).select();
+    if (!error && data && data.length > 0) {
+      setContracts(prev => [data[0], ...prev]);
+    } else {
+      console.error(error);
+      alert('Failed to save contract to database.');
+    }
+  };
+
+  const handleUpdateContract = async (updatedContract) => {
+    const { id, created_at, ...updateData } = updatedContract;
+    const { error } = await supabase
+      .from('contracts')
+      .update(updateData)
+      .eq('id', id);
+    if (!error) {
+      setContracts(prev => prev.map(c => 
+        c.id === id ? updatedContract : c
+      ));
+    } else {
+      console.error(error);
+      alert('Failed to update contract in database.');
+    }
   };
 
   const toggleUser = () => {
