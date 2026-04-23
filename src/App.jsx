@@ -46,6 +46,45 @@ function App() {
   };
 
   useEffect(() => {
+    // Restore session on page load
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user) {
+        const user = session.user;
+        const isAdmin = user.email === 'ma.yangyue@star.vision';
+        setCurrentUser({
+          id: user.id,
+          email: user.email,
+          name: user.email.split('@')[0],
+          role: isAdmin ? 'admin' : 'employee',
+          avatar: user.email.charAt(0).toUpperCase()
+        });
+        setIsAuthenticated(true);
+      }
+    });
+
+    // Listen for auth state changes (e.g., login from another tab, token refresh)
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session?.user) {
+        const user = session.user;
+        const isAdmin = user.email === 'ma.yangyue@star.vision';
+        setCurrentUser({
+          id: user.id,
+          email: user.email,
+          name: user.email.split('@')[0],
+          role: isAdmin ? 'admin' : 'employee',
+          avatar: user.email.charAt(0).toUpperCase()
+        });
+        setIsAuthenticated(true);
+      } else {
+        setIsAuthenticated(false);
+        setCurrentUser(null);
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  useEffect(() => {
     if (isAuthenticated) {
       fetchContracts();
       fetchCategories();
@@ -167,7 +206,8 @@ function App() {
     setIsAuthenticated(true);
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
     setIsAuthenticated(false);
     setCurrentUser(null);
   };
