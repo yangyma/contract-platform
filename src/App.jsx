@@ -50,7 +50,9 @@ function App() {
     // 默认规则：PREFIX-YYNNN (例如 GJSCKJ-26001)
     else {
       const year = new Date().getFullYear().toString().slice(-2); // "26"
-      const regex = new RegExp(`^${prefix}-${year}(\\d{3})$`);
+      // GJSCBM 特殊要求 4 位序号，其他保持 3 位
+      const seqLength = prefix === 'GJSCBM' ? 4 : 3;
+      const regex = new RegExp(`^${prefix}-${year}(\\d{${seqLength}})$`);
       
       let maxSeq = 0;
       contracts.forEach(c => {
@@ -60,7 +62,7 @@ function App() {
           if (seq > maxSeq) maxSeq = seq;
         }
       });
-      const nextSeq = (maxSeq + 1).toString().padStart(3, '0');
+      const nextSeq = (maxSeq + 1).toString().padStart(seqLength, '0');
       return `${prefix}-${year}${nextSeq}`;
     }
   };
