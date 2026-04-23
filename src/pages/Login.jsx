@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { MessageSquare } from 'lucide-react';
 import { MOCK_USER_ADMIN, MOCK_USER_EMPLOYEE } from '../data';
 
 const Login = ({ onLogin }) => {
@@ -136,46 +135,6 @@ const Login = ({ onLogin }) => {
             onMouseUp={(e) => e.target.style.transform = 'scale(1.02)'}
           >
             Sign In
-          </button>
-          
-          <div style={{ display: 'flex', alignItems: 'center', margin: '24px 0 16px' }}>
-            <div style={{ flex: 1, height: '1px', backgroundColor: '#d2d2d7' }}></div>
-            <span style={{ padding: '0 12px', fontSize: '12px', color: '#86868b' }}>OR</span>
-            <div style={{ flex: 1, height: '1px', backgroundColor: '#d2d2d7' }}></div>
-          </div>
-
-          <button 
-            type="button"
-            onClick={() => alert('DingTalk SSO backend integration required. This is a frontend mockup.')}
-            style={{
-              width: '100%',
-              padding: '14px',
-              backgroundColor: '#ffffff',
-              color: '#1d1d1f',
-              border: '1px solid #d2d2d7',
-              borderRadius: '12px',
-              fontSize: '16px',
-              fontWeight: 500,
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: '8px',
-              transition: 'all 0.2s ease'
-            }}
-            onMouseEnter={(e) => {
-              e.target.style.backgroundColor = '#f5f5f7';
-              e.target.style.transform = 'scale(1.02)';
-            }}
-            onMouseLeave={(e) => {
-              e.target.style.backgroundColor = '#ffffff';
-              e.target.style.transform = 'scale(1)';
-            }}
-            onMouseDown={(e) => e.target.style.transform = 'scale(0.98)'}
-            onMouseUp={(e) => e.target.style.transform = 'scale(1.02)'}
-          >
-            <MessageSquare size={20} color="#007FFF" />
-            Sign in with DingTalk
           </button>
         </form>
 
