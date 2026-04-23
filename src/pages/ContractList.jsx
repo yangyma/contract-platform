@@ -43,6 +43,8 @@ const ContractList = ({ contracts, categories, user, onOpenImport, onOpenCreate,
     const matchesYear = yearFilters.length === 0 ? true : yearFilters.some(y => extractYear(c.number) === y);
     
     return matchesSearch && matchesTab && matchesCategory && matchesPartyA && matchesPartyB && matchesYear;
+  }).sort((a, b) => {
+    return a.number.localeCompare(b.number, undefined, { numeric: true, sensitivity: 'base' });
   });
 
   return (
