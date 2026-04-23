@@ -11,9 +11,7 @@ const ImportModal = ({ isOpen, onClose, onImport, categories = [] }) => {
   const [importCategory, setImportCategory] = useState('');
 
   useEffect(() => {
-    if (categories.length > 0 && !importCategory) {
-      setImportCategory(categories[0].name);
-    }
+    // UI no longer relies on a fallback dropdown; category comes from sheet name
   }, [categories]);
 
   if (!isOpen) return null;
@@ -35,52 +33,59 @@ const ImportModal = ({ isOpen, onClose, onImport, categories = [] }) => {
       try {
         const data = new Uint8Array(e.target.result);
         const workbook = XLSX.read(data, { type: 'array' });
-        const sheetName = workbook.SheetNames[0];
-        const worksheet = workbook.Sheets[sheetName];
+        let allMappedData = [];
         
-        // Find the actual header row (some excel files have a title row at the top)
-        const aoa = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
-        let headerRowIndex = 0;
-        for (let i = 0; i < Math.min(10, aoa.length); i++) {
-          if (aoa[i] && (aoa[i].includes('合同编号') || aoa[i].includes('序号'))) {
-            headerRowIndex = i;
-            break;
+        for (const sheetName of workbook.SheetNames) {
+          const worksheet = workbook.Sheets[sheetName];
+          const aoa = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+          
+          if (!aoa || aoa.length === 0) continue;
+
+          let headerRowIndex = 0;
+          for (let i = 0; i < Math.min(10, aoa.length); i++) {
+            if (aoa[i] && (aoa[i].includes('合同编号') || aoa[i].includes('序号'))) {
+              headerRowIndex = i;
+              break;
+            }
           }
+
+          const json = XLSX.utils.sheet_to_json(worksheet, { range: headerRowIndex, raw: false, defval: '' });
+          
+          const mappedData = json.map((row, index) => {
+            let partyA = row['我方签约主体'] || '';
+            if (typeof partyA === 'string') {
+              partyA = partyA.trim();
+            }
+
+            let parsedDate = row['签订时间'];
+            if (!parsedDate || typeof parsedDate !== 'string' || parsedDate.trim() === '') {
+              parsedDate = '-';
+            }
+            
+            if (!row['合同编号']) return null;
+
+            return {
+              id: `imported_${Date.now()}_${sheetName}_${index}`,
+              number: row['合同编号'],
+              partyA: partyA,
+              partyB: row['合同相对方'] || '-',
+              title: row['合同主要内容'] || '未命名合同',
+              amount: row['金额'] || '-',
+              owner: row['经办人'] || '-',
+              date: parsedDate,
+              paperArchived: row['纸质版归档状态'] || '未归档',
+              electronicArchived: row['电子版归档状态'] || '未归档',
+              remarks: row['备注'] || '',
+              type: sheetName, // Sheet name maps directly to Category
+              status: 'active',
+              ownerId: 'u1'
+            };
+          }).filter(Boolean);
+          
+          allMappedData = allMappedData.concat(mappedData);
         }
-
-        const json = XLSX.utils.sheet_to_json(worksheet, { range: headerRowIndex, raw: false, defval: '' });
         
-        // Map the Chinese headers to our data structure
-        const mappedData = json.map((row, index) => {
-          let partyA = row['我方签约主体'] || '';
-          if (typeof partyA === 'string') {
-            partyA = partyA.trim();
-          }
-
-          let parsedDate = row['签订时间'];
-          if (!parsedDate || typeof parsedDate !== 'string' || parsedDate.trim() === '') {
-            parsedDate = '-';
-          }
-
-          return {
-            id: `imported_${Date.now()}_${index}`,
-            number: row['合同编号'] || `TMP-${Date.now()}-${index}`,
-            partyA: partyA,
-            partyB: row['合同相对方'] || '-',
-            title: row['合同主要内容'] || '未命名合同',
-            amount: row['金额'] || '-',
-            owner: row['经办人'] || '-',
-            date: parsedDate,
-            paperArchived: row['纸质版归档状态'] || '未归档',
-            electronicArchived: row['电子版归档状态'] || '未归档',
-            remarks: row['备注'] || '',
-            type: row['合同类型'] || row['分类'] || importCategory, // fallback or map
-            status: 'active',
-            ownerId: 'u1' // Defaulting to admin for imported
-          };
-        });
-        
-        setParsedData(mappedData);
+        setParsedData(allMappedData);
         setError('');
       } catch (err) {
         setError('Error parsing the file. Please make sure it is a valid Excel file.');
@@ -131,16 +136,10 @@ const ImportModal = ({ isOpen, onClose, onImport, categories = [] }) => {
         {!parsedData ? (
           <>
             <div className="info-group" style={{ marginBottom: '24px' }}>
-              <label className="info-label">导入至分类 (Target Category Fallback)</label>
-              <select 
-                value={importCategory} 
-                onChange={e => setImportCategory(e.target.value)}
-                style={{ padding: '8px', borderRadius: '8px', border: '1px solid var(--apple-border)', outline: 'none', backgroundColor: 'transparent', width: '100%' }}
-              >
-                {categories.map(cat => <option key={cat.id} value={cat.name}>{cat.name}</option>)}
-              </select>
-              <span style={{ fontSize: '12px', color: 'var(--apple-text-secondary)', marginTop: '4px', display: 'block' }}>
-                如果表格内没有明确标明“合同类型”或“分类”，将会自动归入此分类下。
+              <span style={{ fontSize: '14px', color: 'var(--apple-text-secondary)', display: 'block' }}>
+                系统将自动读取 Excel 文件中的所有 Sheet 标签。
+                <br/>
+                **注意：系统会将每条合同的“分类”自动绑定为您 Excel 中对应 Sheet 的名称！**
               </span>
             </div>
             
