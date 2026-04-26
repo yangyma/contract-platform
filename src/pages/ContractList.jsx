@@ -47,6 +47,15 @@ const ContractList = ({ contracts, categories, user, onOpenImport, onOpenCreate,
     return a.number.localeCompare(b.number, undefined, { numeric: true, sensitivity: 'base' });
   });
 
+  const totalUSD = filteredContracts.reduce((sum, c) => {
+    if (!c.amount) return sum;
+    // Extract numeric part
+    const numericAmount = parseFloat(c.amount.toString().replace(/[^\d.]/g, '')) || 0;
+    // Determine currency
+    const isUSD = c.currency === 'USD' || c.amount.toString().includes('$');
+    return sum + (isUSD ? numericAmount : numericAmount / 7.2);
+  }, 0);
+
   return (
     <div className="fade-in">
       <div className="page-header">
@@ -84,7 +93,6 @@ const ContractList = ({ contracts, categories, user, onOpenImport, onOpenCreate,
           </div>
 
           <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-
             <div className="search-bar">
               <Search size={16} color="var(--apple-text-secondary)" />
               <input 
@@ -101,6 +109,33 @@ const ContractList = ({ contracts, categories, user, onOpenImport, onOpenCreate,
               <Filter size={16} />
               Filter
             </button>
+          </div>
+        </div>
+
+        {/* Amount Summary */}
+        <div style={{ 
+          marginBottom: '24px', 
+          padding: '16px 20px', 
+          backgroundColor: 'rgba(0, 122, 255, 0.05)', 
+          borderRadius: '12px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          border: '1px solid rgba(0, 122, 255, 0.1)'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <span style={{ fontSize: '14px', color: 'var(--apple-text-secondary)', fontWeight: 500 }}>
+              Showing {filteredContracts.length} contracts
+            </span>
+          </div>
+          <div style={{ textAlign: 'right' }}>
+            <span style={{ fontSize: '14px', color: 'var(--apple-text-secondary)', marginRight: '8px' }}>Total Amount (Estimated USD):</span>
+            <span style={{ fontSize: '18px', fontWeight: 700, color: 'var(--apple-accent)' }}>
+              ${totalUSD.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            </span>
+            <div style={{ fontSize: '11px', color: 'var(--apple-text-tertiary)', marginTop: '2px' }}>
+              Exchange Rate: 1 USD = 7.2 RMB
+            </div>
           </div>
         </div>
 
@@ -235,7 +270,10 @@ const ContractList = ({ contracts, categories, user, onOpenImport, onOpenCreate,
                   <td>{c.type}</td>
                   <td>{c.partyA}</td>
                   <td>{c.partyB}</td>
-                  <td>{c.amount}</td>
+                  <td style={{ fontWeight: 600 }}>
+                    {c.currency === 'USD' || (c.amount && c.amount.toString().includes('$')) ? '$' : '¥'}
+                    {parseFloat(c.amount?.toString().replace(/[^\d.]/g, '') || 0).toLocaleString()}
+                  </td>
                   <td style={{ color: 'var(--apple-text-secondary)' }}>{c.date}</td>
                   <td>{c.owner}</td>
                 </tr>

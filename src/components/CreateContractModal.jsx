@@ -10,6 +10,7 @@ const CreateContractModal = ({ isOpen, onClose, onCreate, categories, generateCo
     partyA: OUR_PARTIES[0],
     partyB: '',
     amount: '',
+    currency: 'RMB',
     owner: '',
     date: '',
     paperArchived: '未归档',
@@ -109,8 +110,15 @@ const CreateContractModal = ({ isOpen, onClose, onCreate, categories, generateCo
 
             <div className="info-group">
               <label className="info-label">金额 (Amount)</label>
-              <input name="amount" value={formData.amount} onChange={handleChange} placeholder="e.g. ¥50,000"
-                style={{ padding: '8px', borderRadius: '8px', border: '1px solid var(--apple-border)', outline: 'none' }} />
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <select name="currency" value={formData.currency} onChange={handleChange}
+                  style={{ width: '80px', padding: '8px', borderRadius: '8px', border: '1px solid var(--apple-border)', outline: 'none', backgroundColor: 'transparent' }}>
+                  <option value="RMB">¥ (RMB)</option>
+                  <option value="USD">$ (USD)</option>
+                </select>
+                <input required name="amount" type="number" step="0.01" value={formData.amount} onChange={handleChange} placeholder="0.00"
+                  style={{ flex: 1, padding: '8px', borderRadius: '8px', border: '1px solid var(--apple-border)', outline: 'none' }} />
+              </div>
             </div>
 
             <div className="info-group">

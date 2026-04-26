@@ -145,7 +145,10 @@ const ContractDetail = ({ contracts, categories, user, onArchive, onUpdate, onDe
               </div>
               <div className="info-group">
                 <span className="info-label">Amount (金额)</span>
-                <span className="info-value">{contract.amount}</span>
+                <span className="info-value">
+                  {contract.currency === 'USD' || (contract.amount && contract.amount.toString().includes('$')) ? '$' : '¥'}
+                  {parseFloat(contract.amount?.toString().replace(/[^\d.]/g, '') || 0).toLocaleString()}
+                </span>
               </div>
               <div className="info-group">
                 <span className="info-label">Signing Date (签订时间)</span>
